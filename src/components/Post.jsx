@@ -28,6 +28,13 @@ export function Post({ author, publishedAt, content }) {
         setNewCommmetText(event.target.value);
     }
 
+    function deleteComment(commentToDelete){
+        const commentWithoutDeletedOne = comments.filter(comment =>{
+            return comment !== commentToDelete;
+        })
+        setComments(commentWithoutDeletedOne);
+    }
+
     return (
         <article className={styles.post}>
             <header>
@@ -60,6 +67,7 @@ export function Post({ author, publishedAt, content }) {
                     placeholder='Deixe um comentário'
                     onChange={handleNewCommentChange}
                     value={newCommentText}
+                    required
                 />
                 <footer>
                     <button type='submit' >Publicar</button>
@@ -67,7 +75,12 @@ export function Post({ author, publishedAt, content }) {
             </form>
             <div className={styles.commentList}>
                 {comments.map(comment => {
-                    return <Comment key={comment} content={comment} />;
+                    return (
+                        <Comment 
+                            key={comment} 
+                            content={comment}
+                            onDeleteComment={deleteComment}
+                        />)
                 })}
             </div>
         </article>
