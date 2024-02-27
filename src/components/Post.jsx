@@ -1,48 +1,87 @@
 import { Avatar } from './Avatar';
 import { Comment } from './Comment';
+import { format, formatDistanceToNow } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
 import styles from './Post.module.css';
+import { useState } from 'react';
 
-export function Post(){
+export function Post({ author, publishedAt, content }) {
+    const [comments, setComments] = useState([]);
+    const [newCommentText, setNewCommmetText] = useState('');
+
+    const publishedDateFormatted = format(publishedAt, "d 'de' LLLL 'às' HH:mm'h'", {
+        locale: ptBR
+    });
+
+    const publishedDateReltiveToNow = formatDistanceToNow(publishedAt, {
+        locale: ptBR,
+        addSuffix: true
+    });
+
+    function handleCreateNewComment() {
+        event.preventDefault();
+        setComments([...comments, newCommentText]);
+        setNewCommmetText('');
+    }
+
+    function handleNewCommentChange() {
+        setNewCommmetText(event.target.value);
+    }
+
+    function deleteComment(commentToDelete){
+        const commentWithoutDeletedOne = comments.filter(comment =>{
+            return comment !== commentToDelete;
+        })
+        setComments(commentWithoutDeletedOne);
+    }
+
     return (
         <article className={styles.post}>
             <header>
                 <div className={styles.author}>
-                    <Avatar src='https://github.com/tiago-mateus.png' />
+                    <Avatar src={author.avatarURL} />
                     <div className={styles.authorInfo}>
-                        <strong>Tiago Mateus</strong>
-                        <span>Web Developer</span>
+                        <strong>{author.name}</strong>
+                        <span>{author.role}</span>
                     </div>
                 </div>
-
-                <time 
-                    title='11 de Maio de 2012' 
-                    dateTime='2024-05-08 08:00:00' >
-                        Publicado há 1h
+                <time
+                    title={publishedDateFormatted}
+                    dateTime={publishedAt.toISOString()} >
+                    {publishedDateReltiveToNow}
                 </time>
             </header>
             <div className={styles.content}>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. </p>
-                    <p>Ipsam ipsa esse quas, architecto placeat veritatis, </p>
-                    <p>quisquam distinctio magni hic necessitatibus laudantium provident mollitia dolores et ex quo eius. </p>
-                    <p>Nostrum, cumque.</p>
-                    <p><a href="">https://github.com/tiago-mateus</a></p>
-                    <p>
-                        <a href="">#developer</a>{' '}
-                        <a href="">#aprendendo</a>{' '}
-                        <a href="">#reactJS</a>
-                    </p>
+                {content.map( line => {
+                    if (line.type === 'paragraph') {
+                        return <p key={line.content}>{line.content}</p>
+                    } else if (line.type === 'link') {
+                        return <p key={line.content}><a href="">{line.content}</a></p>
+                    }
+                })}
             </div>
-            <form className={styles.commentForm}>
+            <form onSubmit={handleCreateNewComment} className={styles.commentForm}>
                 <strong>Deixe seu feedback</strong>
-                <textarea placeholder='Deixe um comentário' />
+                <textarea
+                    name="comment"
+                    placeholder='Deixe um comentário'
+                    onChange={handleNewCommentChange}
+                    value={newCommentText}
+                    required
+                />
                 <footer>
-                    <button type='submit'>Publicar</button>
+                    <button type='submit' >Publicar</button>
                 </footer>
             </form>
             <div className={styles.commentList}>
-                <Comment />
-                <Comment />
-                <Comment />
+                {comments.map(comment => {
+                    return (
+                        <Comment 
+                            key={comment} 
+                            content={comment}
+                            onDeleteComment={deleteComment}
+                        />)
+                })}
             </div>
         </article>
     );
